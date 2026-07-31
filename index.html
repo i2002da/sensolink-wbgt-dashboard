@@ -16,61 +16,61 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 16px;
+    padding: 80px 32px;
   }
   h1 {
-    font-size: 1.5rem;
-    margin-bottom: 4px;
+    font-size: 3rem;
+    margin-bottom: 8px;
   }
   .subtitle {
     color: #94a3b8;
-    font-size: 0.9rem;
-    margin-bottom: 32px;
+    font-size: 1.8rem;
+    margin-bottom: 64px;
   }
   .sites {
     width: 100%;
-    max-width: 960px;
+    max-width: 1600px;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 56px;
   }
   .site-block h2 {
-    font-size: 1.1rem;
-    margin: 0 0 12px 4px;
+    font-size: 2.2rem;
+    margin: 0 0 24px 8px;
     color: #f1f5f9;
-    border-left: 4px solid #38bdf8;
-    padding-left: 10px;
+    border-left: 8px solid #38bdf8;
+    padding-left: 20px;
   }
   .cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
   }
   .card {
     background: #1e293b;
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 24px;
+    padding: 40px;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     border: 1px solid #334155;
   }
   .card .label {
-    font-size: 0.85rem;
+    font-size: 1.7rem;
     color: #94a3b8;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
   }
   .card .value {
-    font-size: 2rem;
+    font-size: 4rem;
     font-weight: 700;
     color: #f8fafc;
   }
   .card.feel .value { color: #fb923c; }
   .card.temp .value { color: #38bdf8; }
   .card.hum .value { color: #34d399; }
-  .card.time .value { font-size: 1.15rem; color: #e2e8f0; }
+  .card.time .value { font-size: 2.3rem; color: #e2e8f0; }
   #status {
-    margin-top: 28px;
-    font-size: 0.8rem;
+    margin-top: 56px;
+    font-size: 1.6rem;
     color: #64748b;
     text-align: center;
   }
@@ -110,6 +110,20 @@ function fmt(v, unit) {
   return (v !== null && v !== undefined) ? v + unit : '--';
 }
 
+// KST(UTC+9) 기준으로 "YYYY-MM-DD HH:MM:SS" 형태로 통일해서 표시.
+// occurredAt(센서 자체 시각)과 같은 형식/타임존을 사용해 서로 다른 시각처럼 보이는 혼동을 없앤다.
+function formatKST(date) {
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  }).formatToParts(date);
+  const p = {};
+  parts.forEach(({type, value}) => { p[type] = value; });
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`;
+}
+
 function renderSite(prefix, site) {
   if (!site) return;
   if (site.name) document.getElementById(prefix + '-name').textContent = site.name;
@@ -129,9 +143,12 @@ async function load() {
     renderSite('site5', d.site5);
     renderSite('site6', d.site6);
 
+    const checkedAtKST = formatKST(new Date());
+    const collectedAtKST = d.updatedAt ? formatKST(new Date(d.updatedAt)) : null;
+
     statusEl.classList.remove('error');
-    statusEl.textContent = '마지막 갱신: ' + new Date().toLocaleString('ko-KR') +
-      (d.updatedAt ? ' (데이터 수집: ' + d.updatedAt + ')' : '');
+    statusEl.textContent = '마지막 확인(내 화면): ' + checkedAtKST + ' KST' +
+      (collectedAtKST ? ' · 서버 데이터 수집: ' + collectedAtKST + ' KST' : '');
   } catch (e) {
     statusEl.classList.add('error');
     statusEl.textContent = '데이터 로드 실패: ' + e.message;
