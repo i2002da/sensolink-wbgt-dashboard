@@ -1,0 +1,56 @@
+name: Fetch Sensolink WBGT Data
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login and fetch latest sensor reading
+        env:
+          SENSOLINK_ID: ${{ secrets.SENSOLINK_ID }}
+          SENSOLINK_PW: ${{ secrets.SENSOLINK_PW }}
+        run: |
+          set -e
+          COOKIE_JAR=cookies.txt
+
+          curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" -L \
+            -X POST "https://www.sensolink.kr/login_proc.do" \
+            --data-urlencode "user_id=$SENSOLINK_ID" \
+            --data-urlencode "user_pw=$SENSOLINK_PW" \
+            -o /dev/null
+
+          TODAY=$(TZ='Asia/Seoul' date +%Y-%m-%d)
+
+          RESPONSE=$(curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
+            -X POST "https://www.sensolink.kr/wbgt/getWbgtData.json" \
+            -H "Content-Type: application/json" \
+            -d "{\"url\":\"wbgt/getWbgtData.json\",\"btntype\":\"I\",\"scnId\":\"S000000188\",\"trmnlId\":\"WB-9000090\",\"sdtm\":\"$TODAY 00:00:01\",\"edtm\":\"$TODAY 23:59:59\"}")
+
+          echo "$RESPONSE" | jq '{
+            perceivedTemperature: (.wbgt[0].perceivedTemperature1 // null),
+            temperature: (.wbgt[0].taTemperature // null),
+            humidity: (.wbgt[0].humidity // null),
+            occurredAt: (.wbgt[0].ocrnDt // null),
+            updatedAt: (now | strftime("%Y-%m-%dT%H:%M:%SZ"))
+          }' > data.json
+
+          echo "---- data.json ----"
+          cat data.json
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git diff --staged --quiet || git commit -m "Update sensor data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
