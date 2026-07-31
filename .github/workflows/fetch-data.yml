@@ -25,16 +25,20 @@ jobs:
 
           curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" -L \
             -X POST "https://www.sensolink.kr/login_proc.do" \
+            -H "Cache-Control: no-cache" -H "Pragma: no-cache" \
             --data-urlencode "user_id=$SENSOLINK_ID" \
             --data-urlencode "user_pw=$SENSOLINK_PW" \
             -o /dev/null
 
-          TODAY=$(TZ='Asia/Seoul' date +%Y-%m-%d)
+          NOW=$(TZ='Asia/Seoul' date +%Y-%m-%d\ %H:%M:%S)
+          FROM=$(TZ='Asia/Seoul' date -d '-2 hours' +%Y-%m-%d\ %H:%M:%S)
+          NONCE=$(date +%s%N)
 
           RESPONSE=$(curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
-            -X POST "https://www.sensolink.kr/wbgt/getWbgtData.json" \
+            -X POST "https://www.sensolink.kr/wbgt/getWbgtData.json?_ts=$NONCE" \
             -H "Content-Type: application/json" \
-            -d "{\"url\":\"wbgt/getWbgtData.json\",\"btntype\":\"I\",\"scnId\":\"S000000188\",\"trmnlId\":\"WB-9000090\",\"sdtm\":\"$TODAY 00:00:01\",\"edtm\":\"$TODAY 23:59:59\"}")
+            -H "Cache-Control: no-cache" -H "Pragma: no-cache" \
+            -d "{\"url\":\"wbgt/getWbgtData.json\",\"btntype\":\"I\",\"scnId\":\"S000000188\",\"trmnlId\":\"WB-9000090\",\"sdtm\":\"$FROM\",\"edtm\":\"$NOW\"}")
 
           echo "$RESPONSE" | jq '{
             name: "천안아이파크 5단지",
@@ -57,16 +61,20 @@ jobs:
 
           curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" -L \
             -X POST "https://www.sensolink.kr/login_proc.do" \
+            -H "Cache-Control: no-cache" -H "Pragma: no-cache" \
             --data-urlencode "user_id=$SENSOLINK_ID_6" \
             --data-urlencode "user_pw=$SENSOLINK_PW_6" \
             -o /dev/null
 
-          TODAY=$(TZ='Asia/Seoul' date +%Y-%m-%d)
+          NOW=$(TZ='Asia/Seoul' date +%Y-%m-%d\ %H:%M:%S)
+          FROM=$(TZ='Asia/Seoul' date -d '-2 hours' +%Y-%m-%d\ %H:%M:%S)
+          NONCE=$(date +%s%N)
 
           RESPONSE=$(curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
-            -X POST "https://www.sensolink.kr/wbgt/getWbgtData.json" \
+            -X POST "https://www.sensolink.kr/wbgt/getWbgtData.json?_ts=$NONCE" \
             -H "Content-Type: application/json" \
-            -d "{\"url\":\"wbgt/getWbgtData.json\",\"btntype\":\"I\",\"scnId\":\"S000000272\",\"trmnlId\":\"WB-9000167\",\"sdtm\":\"$TODAY 00:00:01\",\"edtm\":\"$TODAY 23:59:59\"}")
+            -H "Cache-Control: no-cache" -H "Pragma: no-cache" \
+            -d "{\"url\":\"wbgt/getWbgtData.json\",\"btntype\":\"I\",\"scnId\":\"S000000272\",\"trmnlId\":\"WB-9000167\",\"sdtm\":\"$FROM\",\"edtm\":\"$NOW\"}")
 
           echo "$RESPONSE" | jq '{
             name: "천안아이파크 6단지",
@@ -94,5 +102,3 @@ jobs:
           git add data.json
           git diff --staged --quiet || git commit -m "Update sensor data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push
-
-# schedule re-registered at 2026-07-31T07:49:20Z
