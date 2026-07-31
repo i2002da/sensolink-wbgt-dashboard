@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>체감온도 센서 데이터</title>
 <style>
-  :root {
-    color-scheme: light;
-  }
+  :root { color-scheme: light; }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -29,12 +27,24 @@
     font-size: 0.9rem;
     margin-bottom: 32px;
   }
+  .sites {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .site-block h2 {
+    font-size: 1.1rem;
+    margin: 0 0 12px 4px;
+    color: #f1f5f9;
+    border-left: 4px solid #38bdf8;
+    padding-left: 10px;
+  }
   .cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
-    width: 100%;
-    max-width: 900px;
   }
   .card {
     background: #1e293b;
@@ -59,39 +69,56 @@
   .card.hum .value { color: #34d399; }
   .card.time .value { font-size: 1.15rem; color: #e2e8f0; }
   #status {
-    margin-top: 24px;
+    margin-top: 28px;
     font-size: 0.8rem;
     color: #64748b;
+    text-align: center;
   }
   #status.error { color: #f87171; }
 </style>
 </head>
 <body>
   <h1>체감온도 센서 데이터</h1>
-  <div class="subtitle">sensolink.kr 실시간 대시보드</div>
+  <div class="subtitle">sensolink.kr 실시간 대시보드 · 5분 주기 갱신</div>
 
-  <div class="cards">
-    <div class="card feel">
-      <div class="label">체감온도</div>
-      <div class="value" id="feel">--</div>
+  <div class="sites">
+    <div class="site-block">
+      <h2 id="site5-name">천안아이파크 5단지</h2>
+      <div class="cards">
+        <div class="card feel"><div class="label">체감온도</div><div class="value" id="site5-feel">--</div></div>
+        <div class="card temp"><div class="label">온도</div><div class="value" id="site5-temp">--</div></div>
+        <div class="card hum"><div class="label">습도</div><div class="value" id="site5-hum">--</div></div>
+        <div class="card time"><div class="label">발생일시</div><div class="value" id="site5-time">--</div></div>
+      </div>
     </div>
-    <div class="card temp">
-      <div class="label">온도</div>
-      <div class="value" id="temp">--</div>
-    </div>
-    <div class="card hum">
-      <div class="label">습도</div>
-      <div class="value" id="hum">--</div>
-    </div>
-    <div class="card time">
-      <div class="label">발생일시</div>
-      <div class="value" id="time">--</div>
+
+    <div class="site-block">
+      <h2 id="site6-name">천안아이파크 6단지</h2>
+      <div class="cards">
+        <div class="card feel"><div class="label">체감온도</div><div class="value" id="site6-feel">--</div></div>
+        <div class="card temp"><div class="label">온도</div><div class="value" id="site6-temp">--</div></div>
+        <div class="card hum"><div class="label">습도</div><div class="value" id="site6-hum">--</div></div>
+        <div class="card time"><div class="label">발생일시</div><div class="value" id="site6-time">--</div></div>
+      </div>
     </div>
   </div>
 
   <div id="status">불러오는 중...</div>
 
 <script>
+function fmt(v, unit) {
+  return (v !== null && v !== undefined) ? v + unit : '--';
+}
+
+function renderSite(prefix, site) {
+  if (!site) return;
+  if (site.name) document.getElementById(prefix + '-name').textContent = site.name;
+  document.getElementById(prefix + '-feel').textContent = fmt(site.perceivedTemperature, ' °C');
+  document.getElementById(prefix + '-temp').textContent = fmt(site.temperature, ' °C');
+  document.getElementById(prefix + '-hum').textContent = fmt(site.humidity, ' %');
+  document.getElementById(prefix + '-time').textContent = site.occurredAt || '--';
+}
+
 async function load() {
   const statusEl = document.getElementById('status');
   try {
@@ -99,13 +126,8 @@ async function load() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const d = await res.json();
 
-    document.getElementById('feel').textContent =
-      (d.perceivedTemperature !== null && d.perceivedTemperature !== undefined) ? d.perceivedTemperature + ' °C' : '--';
-    document.getElementById('temp').textContent =
-      (d.temperature !== null && d.temperature !== undefined) ? d.temperature + ' °C' : '--';
-    document.getElementById('hum').textContent =
-      (d.humidity !== null && d.humidity !== undefined) ? d.humidity + ' %' : '--';
-    document.getElementById('time').textContent = d.occurredAt || '--';
+    renderSite('site5', d.site5);
+    renderSite('site6', d.site6);
 
     statusEl.classList.remove('error');
     statusEl.textContent = '마지막 갱신: ' + new Date().toLocaleString('ko-KR') +
