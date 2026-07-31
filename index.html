@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>체감온도 센서 데이터</title>
+<style>
+  :root {
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    width: 100%;
+    max-width: 900px;
+  }
+  .card {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    border: 1px solid #334155;
+  }
+  .card .label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+  .card .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .card.feel .value { color: #fb923c; }
+  .card.temp .value { color: #38bdf8; }
+  .card.hum .value { color: #34d399; }
+  .card.time .value { font-size: 1.15rem; color: #e2e8f0; }
+  #status {
+    margin-top: 24px;
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+  #status.error { color: #f87171; }
+</style>
+</head>
+<body>
+  <h1>체감온도 센서 데이터</h1>
+  <div class="subtitle">sensolink.kr 실시간 대시보드</div>
+
+  <div class="cards">
+    <div class="card feel">
+      <div class="label">체감온도</div>
+      <div class="value" id="feel">--</div>
+    </div>
+    <div class="card temp">
+      <div class="label">온도</div>
+      <div class="value" id="temp">--</div>
+    </div>
+    <div class="card hum">
+      <div class="label">습도</div>
+      <div class="value" id="hum">--</div>
+    </div>
+    <div class="card time">
+      <div class="label">발생일시</div>
+      <div class="value" id="time">--</div>
+    </div>
+  </div>
+
+  <div id="status">불러오는 중...</div>
+
+<script>
+async function load() {
+  const statusEl = document.getElementById('status');
+  try {
+    const res = await fetch('./data.json?_=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+
+    document.getElementById('feel').textContent =
+      (d.perceivedTemperature !== null && d.perceivedTemperature !== undefined) ? d.perceivedTemperature + ' °C' : '--';
+    document.getElementById('temp').textContent =
+      (d.temperature !== null && d.temperature !== undefined) ? d.temperature + ' °C' : '--';
+    document.getElementById('hum').textContent =
+      (d.humidity !== null && d.humidity !== undefined) ? d.humidity + ' %' : '--';
+    document.getElementById('time').textContent = d.occurredAt || '--';
+
+    statusEl.classList.remove('error');
+    statusEl.textContent = '마지막 갱신: ' + new Date().toLocaleString('ko-KR') +
+      (d.updatedAt ? ' (데이터 수집: ' + d.updatedAt + ')' : '');
+  } catch (e) {
+    statusEl.classList.add('error');
+    statusEl.textContent = '데이터 로드 실패: ' + e.message;
+  }
+}
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
