@@ -94,3 +94,5 @@ jobs:
           git add data.json
           git diff --staged --quiet || git commit -m "Update sensor data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push
+
+# schedule re-registered at 2026-07-31T07:49:20Z
