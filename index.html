@@ -7,106 +7,132 @@
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
-  body {
+  html, body {
+    height: 100%;
     margin: 0;
+  }
+  body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
     background: #0f172a;
     color: #e2e8f0;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 50px 80px;
+    padding: 2vh 3vw;
+    overflow: hidden;
+  }
+  header {
+    text-align: center;
+    flex: 0 0 auto;
+    margin-bottom: 1.5vh;
   }
   h1 {
-    font-size: 3.2rem;
-    margin-bottom: 10px;
+    font-size: 2.6rem;
+    margin: 0 0 4px;
   }
   .subtitle {
     color: #94a3b8;
-    font-size: 1.6rem;
-    margin-bottom: 40px;
+    font-size: 1.2rem;
+    margin: 0;
   }
+
   .sites {
-    width: 100%;
-    max-width: 1400px;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2vw;
+  }
+  .site-block {
     display: flex;
     flex-direction: column;
-    gap: 48px;
+    min-height: 0;
   }
   .site-block h2 {
-    font-size: 2.2rem;
-    margin: 0 0 20px 8px;
+    font-size: 1.5rem;
+    margin: 0 0 1vh 6px;
     color: #f1f5f9;
-    border-left: 7px solid #38bdf8;
-    padding-left: 18px;
+    border-left: 6px solid #38bdf8;
+    padding-left: 14px;
+    flex: 0 0 auto;
   }
 
   .hero-card {
     background: #1e293b;
-    border-radius: 24px;
-    padding: 36px 40px;
-    text-align: center;
+    border-radius: 20px;
     border: 1px solid #334155;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    margin-bottom: 24px;
+    flex: 1.3 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.2vh;
   }
   .hero-label {
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     color: #94a3b8;
-    margin-bottom: 12px;
+    margin-bottom: 0.5vh;
   }
   .hero-value {
-    font-size: 6.5rem;
+    font-size: clamp(2.5rem, 9vh, 7.5rem);
     font-weight: 700;
     line-height: 1;
     color: #fb923c;
   }
 
   .sub-cards {
+    flex: 1 1 0;
+    min-height: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 20px;
+    gap: 1vw;
+    margin-bottom: 1vh;
   }
   .sub-cards .card {
     background: #1e293b;
-    border-radius: 20px;
-    padding: 28px;
-    text-align: center;
+    border-radius: 18px;
     border: 1px solid #334155;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
   }
   .sub-cards .card .label {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     color: #94a3b8;
-    margin-bottom: 12px;
+    margin-bottom: 0.4vh;
   }
   .sub-cards .card .value {
-    font-size: 3.6rem;
+    font-size: clamp(1.8rem, 6.2vh, 5rem);
     font-weight: 700;
+    line-height: 1;
   }
   .sub-cards .card.temp .value { color: #38bdf8; }
   .sub-cards .card.hum .value { color: #34d399; }
 
   .time-line {
+    flex: 0 0 auto;
     text-align: center;
     color: #64748b;
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
 
-  #status {
-    margin-top: 40px;
-    font-size: 1.4rem;
-    color: #64748b;
+  footer {
+    flex: 0 0 auto;
     text-align: center;
+    color: #64748b;
+    font-size: 1.05rem;
+    margin-top: 1.2vh;
   }
-  #status.error { color: #f87171; }
+  footer.error { color: #f87171; }
 </style>
 </head>
 <body>
-  <h1>체감온도 센서 데이터</h1>
-  <div class="subtitle">sensolink.kr 실시간 대시보드 · 5분 주기 갱신</div>
+  <header>
+    <h1>체감온도 센서 데이터</h1>
+    <p class="subtitle">sensolink.kr 실시간 대시보드 · 5분 주기 갱신</p>
+  </header>
 
   <div class="sites">
     <div class="site-block">
@@ -136,7 +162,7 @@
     </div>
   </div>
 
-  <div id="status">불러오는 중...</div>
+  <footer id="status">불러오는 중...</footer>
 
 <script>
 function fmt(v, unit) {
