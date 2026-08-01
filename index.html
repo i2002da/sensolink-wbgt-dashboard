@@ -45,6 +45,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
+    align-items: stretch;
   }
   .card {
     background: #1e293b;
@@ -53,6 +54,10 @@
     text-align: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     border: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
   .card .label {
     font-size: 1.5rem;
@@ -65,9 +70,38 @@
     color: #f8fafc;
   }
   .card.feel .value { color: #fb923c; }
-  .card.temp .value { color: #38bdf8; }
-  .card.hum .value { color: #34d399; }
   .card.time .value { font-size: 1.9rem; color: #e2e8f0; }
+
+  .gauge-wrap {
+    position: relative;
+    width: 190px;
+    height: 190px;
+  }
+  .gauge-wrap svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .gauge-bg { stroke: #334155; }
+  .gauge-fg {
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .card.temp .gauge-fg { stroke: #38bdf8; }
+  .card.hum .gauge-fg { stroke: #34d399; }
+  .gauge-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.7rem;
+    font-weight: 700;
+    color: #f8fafc;
+    white-space: nowrap;
+  }
+  .card.temp .gauge-value { color: #38bdf8; }
+  .card.hum .gauge-value { color: #34d399; }
+
   #status {
     margin-top: 36px;
     font-size: 1.4rem;
@@ -86,8 +120,29 @@
       <h2 id="site5-name">천안아이파크 5단지</h2>
       <div class="cards">
         <div class="card feel"><div class="label">체감온도</div><div class="value" id="site5-feel">--</div></div>
-        <div class="card temp"><div class="label">온도</div><div class="value" id="site5-temp">--</div></div>
-        <div class="card hum"><div class="label">습도</div><div class="value" id="site5-hum">--</div></div>
+
+        <div class="card temp">
+          <div class="label">온도</div>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 120 120">
+              <circle class="gauge-bg" cx="60" cy="60" r="52" stroke-width="12" fill="none"/>
+              <circle class="gauge-fg" id="site5-temp-ring" cx="60" cy="60" r="52" stroke-width="12" fill="none" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+            </svg>
+            <div class="gauge-value" id="site5-temp">--</div>
+          </div>
+        </div>
+
+        <div class="card hum">
+          <div class="label">습도</div>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 120 120">
+              <circle class="gauge-bg" cx="60" cy="60" r="52" stroke-width="12" fill="none"/>
+              <circle class="gauge-fg" id="site5-hum-ring" cx="60" cy="60" r="52" stroke-width="12" fill="none" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+            </svg>
+            <div class="gauge-value" id="site5-hum">--</div>
+          </div>
+        </div>
+
         <div class="card time"><div class="label">발생일시</div><div class="value" id="site5-time">--</div></div>
       </div>
     </div>
@@ -96,8 +151,29 @@
       <h2 id="site6-name">천안아이파크 6단지</h2>
       <div class="cards">
         <div class="card feel"><div class="label">체감온도</div><div class="value" id="site6-feel">--</div></div>
-        <div class="card temp"><div class="label">온도</div><div class="value" id="site6-temp">--</div></div>
-        <div class="card hum"><div class="label">습도</div><div class="value" id="site6-hum">--</div></div>
+
+        <div class="card temp">
+          <div class="label">온도</div>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 120 120">
+              <circle class="gauge-bg" cx="60" cy="60" r="52" stroke-width="12" fill="none"/>
+              <circle class="gauge-fg" id="site6-temp-ring" cx="60" cy="60" r="52" stroke-width="12" fill="none" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+            </svg>
+            <div class="gauge-value" id="site6-temp">--</div>
+          </div>
+        </div>
+
+        <div class="card hum">
+          <div class="label">습도</div>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 120 120">
+              <circle class="gauge-bg" cx="60" cy="60" r="52" stroke-width="12" fill="none"/>
+              <circle class="gauge-fg" id="site6-hum-ring" cx="60" cy="60" r="52" stroke-width="12" fill="none" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+            </svg>
+            <div class="gauge-value" id="site6-hum">--</div>
+          </div>
+        </div>
+
         <div class="card time"><div class="label">발생일시</div><div class="value" id="site6-time">--</div></div>
       </div>
     </div>
@@ -106,12 +182,26 @@
   <div id="status">불러오는 중...</div>
 
 <script>
+const GAUGE_CIRCUMFERENCE = 2 * Math.PI * 52; // ≈ 326.73
+
 function fmt(v, unit) {
   return (v !== null && v !== undefined) ? v + unit : '--';
 }
 
+function setGauge(ringId, valueId, value, unit, min, max) {
+  const ring = document.getElementById(ringId);
+  const valEl = document.getElementById(valueId);
+  if (value === null || value === undefined) {
+    valEl.textContent = '--';
+    ring.style.strokeDashoffset = GAUGE_CIRCUMFERENCE;
+    return;
+  }
+  valEl.textContent = value + unit;
+  const frac = Math.min(1, Math.max(0, (value - min) / (max - min)));
+  ring.style.strokeDashoffset = GAUGE_CIRCUMFERENCE * (1 - frac);
+}
+
 // KST(UTC+9) 기준으로 "YYYY-MM-DD HH:MM:SS" 형태로 통일해서 표시.
-// occurredAt(센서 자체 시각)과 같은 형식/타임존을 사용해 서로 다른 시각처럼 보이는 혼동을 없앤다.
 function formatKST(date) {
   const parts = new Intl.DateTimeFormat('sv-SE', {
     timeZone: 'Asia/Seoul',
@@ -128,8 +218,8 @@ function renderSite(prefix, site) {
   if (!site) return;
   if (site.name) document.getElementById(prefix + '-name').textContent = site.name;
   document.getElementById(prefix + '-feel').textContent = fmt(site.perceivedTemperature, ' °C');
-  document.getElementById(prefix + '-temp').textContent = fmt(site.temperature, ' °C');
-  document.getElementById(prefix + '-hum').textContent = fmt(site.humidity, ' %');
+  setGauge(prefix + '-temp-ring', prefix + '-temp', site.temperature, ' °C', 0, 45);
+  setGauge(prefix + '-hum-ring', prefix + '-hum', site.humidity, ' %', 0, 100);
   document.getElementById(prefix + '-time').textContent = site.occurredAt || '--';
 }
 
