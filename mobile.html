@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>체감온도 센서 데이터 (모바일)</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 24px 16px 40px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; }
+  .subtitle { color: #94a3b8; font-size: 0.9rem; margin: 0; }
+
+  .site-block { margin-bottom: 32px; }
+  .site-block h2 {
+    font-size: 1.3rem;
+    margin: 0 0 12px 4px;
+    color: #f1f5f9;
+    border-left: 5px solid #38bdf8;
+    padding-left: 12px;
+  }
+
+  .hero-card {
+    background: #1e293b;
+    border-radius: 18px;
+    border: 1px solid #334155;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .hero-label { font-size: 1rem; color: #94a3b8; margin-bottom: 6px; }
+  .hero-value { font-size: 3.4rem; font-weight: 700; line-height: 1; color: #fb923c; }
+
+  .sub-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .sub-cards .card {
+    background: #1e293b;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    padding: 18px 8px;
+    text-align: center;
+  }
+  .sub-cards .card .label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
+  .sub-cards .card .value { font-size: 2.1rem; font-weight: 700; line-height: 1; }
+  .sub-cards .card.temp .value { color: #38bdf8; }
+  .sub-cards .card.hum .value { color: #34d399; }
+
+  .time-line { text-align: center; color: #64748b; font-size: 0.9rem; }
+
+  footer {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  footer.error { color: #f87171; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>체감온도 센서 데이터</h1>
+    <p class="subtitle">sensolink.kr 모바일 대시보드 · 5분 주기 갱신</p>
+  </header>
+
+  <div class="site-block">
+    <h2 id="site5-name">천안아이파크 5단지</h2>
+    <div class="hero-card">
+      <div class="hero-label">체감온도</div>
+      <div class="hero-value" id="site5-feel">--</div>
+    </div>
+    <div class="sub-cards">
+      <div class="card temp"><div class="label">온도</div><div class="value" id="site5-temp">--</div></div>
+      <div class="card hum"><div class="label">습도</div><div class="value" id="site5-hum">--</div></div>
+    </div>
+    <div class="time-line">발생일시 <span id="site5-time">--</span></div>
+  </div>
+
+  <div class="site-block">
+    <h2 id="site6-name">천안아이파크 6단지</h2>
+    <div class="hero-card">
+      <div class="hero-label">체감온도</div>
+      <div class="hero-value" id="site6-feel">--</div>
+    </div>
+    <div class="sub-cards">
+      <div class="card temp"><div class="label">온도</div><div class="value" id="site6-temp">--</div></div>
+      <div class="card hum"><div class="label">습도</div><div class="value" id="site6-hum">--</div></div>
+    </div>
+    <div class="time-line">발생일시 <span id="site6-time">--</span></div>
+  </div>
+
+  <footer id="status">불러오는 중...</footer>
+
+<script>
+function fmt(v, unit) {
+  return (v !== null && v !== undefined) ? v + unit : '--';
+}
+
+function formatKST(date) {
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  }).formatToParts(date);
+  const p = {};
+  parts.forEach(({type, value}) => { p[type] = value; });
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`;
+}
+
+function renderSite(prefix, site) {
+  if (!site) return;
+  if (site.name) document.getElementById(prefix + '-name').textContent = site.name;
+  document.getElementById(prefix + '-feel').textContent = fmt(site.perceivedTemperature, '°C');
+  document.getElementById(prefix + '-temp').textContent = fmt(site.temperature, '°C');
+  document.getElementById(prefix + '-hum').textContent = fmt(site.humidity, '%');
+  document.getElementById(prefix + '-time').textContent = site.occurredAt || '--';
+}
+
+async function load() {
+  const statusEl = document.getElementById('status');
+  try {
+    const res = await fetch('./data.json?_=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+
+    renderSite('site5', d.site5);
+    renderSite('site6', d.site6);
+
+    const checkedAtKST = formatKST(new Date());
+    const collectedAtKST = d.updatedAt ? formatKST(new Date(d.updatedAt)) : null;
+
+    statusEl.classList.remove('error');
+    statusEl.textContent = '마지막 확인: ' + checkedAtKST + ' KST' +
+      (collectedAtKST ? ' · 서버 수집: ' + collectedAtKST + ' KST' : '');
+  } catch (e) {
+    statusEl.classList.add('error');
+    statusEl.textContent = '데이터 로드 실패: ' + e.message;
+  }
+}
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
