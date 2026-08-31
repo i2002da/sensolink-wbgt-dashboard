@@ -1,17 +1,17 @@
 {
   "site5": {
     "name": "천안아이파크 5단지",
-    "perceivedTemperature": 27.8,
-    "temperature": 24.9,
-    "humidity": 93.7,
-    "occurredAt": "2026-08-31 15:40:49"
+    "perceivedTemperature": 27.6,
+    "temperature": 24.8,
+    "humidity": 93.2,
+    "occurredAt": "2026-08-31 15:45:49"
   },
   "site6": {
     "name": "천안아이파크 6단지",
-    "perceivedTemperature": 27.3,
-    "temperature": 24.7,
-    "humidity": 89.7,
-    "occurredAt": "2026-08-31 15:41:01"
+    "perceivedTemperature": 27.2,
+    "temperature": 24.6,
+    "humidity": 89.5,
+    "occurredAt": "2026-08-31 15:46:01"
   },
-  "updatedAt": "2026-08-31T06:45:25Z"
+  "updatedAt": "2026-08-31T06:50:27Z"
 }
